@@ -14,10 +14,13 @@ class Pomodoro:
   
   def __init__(self):
     logging.debug("Construct pomodoro object")
+    self._pressStatus = False
     self.setup()
+    
 
   def setup(self):
     logging.debug("Setup")
+    self.currentState = IDLE
   
   def checkState(self):
     logging.debug("Check state")
@@ -25,43 +28,96 @@ class Pomodoro:
     self._nextCheck = Timer(1, self.checkState)
     # Start the timer
     self._nextCheck.start()
-  
+    if self.currentState == IDLE:
+        if self.isPressed():
+            self.startWork()
+    elif self.currentState == WORK:
+        if self.isTimeOver():
+            self.ringBreakAlarm()
+    elif self.currentState == BREAK_ALARM:
+        if self.isPressed():
+          if self.isTimeForLongBreak():
+            self.startLongBreak()
+          else:
+            self.startShortBreak()
+    elif self.currentState == SHORT_BREAK:
+        if self.isTimeOver():
+            self.ringWorkAlarm()
+    elif self.currentState == WORK_ALARM:
+        if self.isPressed():
+            self.startWork()
+    elif self.currentState == LONG_BREAK:
+        if self.isPressed():
+            self.pause()
+    else:
+        # Log a warning with the state
+        logging.warn("Invalid state: " + self.currentState)
+      
+  			
   def start(self):
     logging.debug("start Pomodoro")
     self.checkState()
-
-  def startWork(self):
-    logging.debug("Start work")
-
-  def ringBreakAlarm(self):
-    logging.debug("Ring break alarm")
-
-  def startShortBreak(self):
-    logging.debug("Start short break")
-
-  def ringWorkAlarm(self):
-    logging.debug("Ring work alarm")
-
-  def startLongBreak(self):
-    logging.debug("Start long break")
-
-  def pause(self):
-    logging.debug("Pause")
-
-  def isPressed(self):
-    logging.debug("Is Pressed?")
-
-  def isTimeOver(self):
-    logging.debug("Is time over?")
-
-  def isTimeForLongBreak(self):
-    logging.debug("Is time for long break?")
-
+  
   def stop(self):
     logging.debug("Stop Pomodoro")
     # If a timer has been constructed and waiting for the next second
     if self._nextCheck is not None:
       # Cancel the timer
       self._nextCheck.cancel()
+
+  def changeState(self, state):
+    """
+    for changing states 
+    state =  the new state
+    """
+    logging.debug("NEW STATE")
+    self.currentState = state
     
-    
+
+  def startWork(self):
+    logging.debug("Start work")
+    self.changeState(WORK)
+
+  def ringBreakAlarm(self):
+    logging.debug("Ring break alarm")
+    self.changeState(BREAK_ALARM)
+
+
+  def startShortBreak(self):
+    logging.debug("Start short break")
+    self.changeState(SHORT_BREAK)
+
+  def ringWorkAlarm(self):
+    logging.debug("Ring work alarm")
+    self.changeState(WORK_ALARM)
+
+  def startLongBreak(self):
+    logging.debug("Start long break")
+    self.changeState(LONG_BREAK)
+
+
+  def pause(self):
+    logging.debug("Pause")
+    self.changeState(IDLE)
+
+  def isPressed(self):
+    logging.debug("Is Pressed?")
+    if self._pressStatus:
+      # Switch back button status to False, so that it is taken into account only once
+      self._pressStatus = False
+      return True
+    return False
+
+
+  def press(self):
+    """
+      Use _buttonStatus as a flag so that for the next check state the button is 'pressed'.
+    """
+    logging.debug("Pomodoro pressed")
+    self._pressStatus = True
+
+  def isTimeOver(self):
+    logging.debug("Is time over?")
+
+  def isTimeForLongBreak(self):
+    logging.debug("Is time for long break?")
