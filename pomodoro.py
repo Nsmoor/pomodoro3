@@ -14,7 +14,9 @@ class Pomodoro:
   
   def __init__(self):
     logging.debug("Construct pomodoro object")
+    self._pressStatus = False
     self.setup()
+    
 
   def setup(self):
     logging.debug("Setup")
@@ -74,31 +76,48 @@ class Pomodoro:
 
   def startWork(self):
     logging.debug("Start work")
+    self.changeState(WORK)
 
   def ringBreakAlarm(self):
     logging.debug("Ring break alarm")
+    self.changeState(BREAK_ALARM)
+
 
   def startShortBreak(self):
     logging.debug("Start short break")
+    self.changeState(SHORT_BREAK)
 
   def ringWorkAlarm(self):
     logging.debug("Ring work alarm")
+    self.changeState(WORK_ALARM)
 
   def startLongBreak(self):
     logging.debug("Start long break")
+    self.changeState(LONG_BREAK)
+
 
   def pause(self):
     logging.debug("Pause")
+    self.changeState(IDLE)
 
   def isPressed(self):
     logging.debug("Is Pressed?")
+    if self._pressStatus:
+      # Switch back button status to False, so that it is taken into account only once
+      self._pressStatus = False
+      return True
+    return False
+
+
+  def press(self):
+    """
+      Use _buttonStatus as a flag so that for the next check state the button is 'pressed'.
+    """
+    logging.debug("Pomodoro pressed")
+    self._pressStatus = True
 
   def isTimeOver(self):
     logging.debug("Is time over?")
 
   def isTimeForLongBreak(self):
     logging.debug("Is time for long break?")
-
-  
-    
-    
