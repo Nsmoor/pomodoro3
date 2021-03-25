@@ -18,6 +18,7 @@ class Pomodoro:
 
   def setup(self):
     logging.debug("Setup")
+    self.currentState = IDLE
   
   def checkState(self):
     logging.debug("Check state")
@@ -25,10 +26,51 @@ class Pomodoro:
     self._nextCheck = Timer(1, self.checkState)
     # Start the timer
     self._nextCheck.start()
-  
+    if self.currentState == IDLE:
+        if self.isPressed():
+            self.startWork()
+    elif self.currentState == WORK:
+        if self.isTimeOver():
+            self.ringBreakAlarm()
+    elif self.currentState == BREAK_ALARM:
+        if self.isPressed():
+          if self.isTimeForLongBreak():
+            self.startLongBreak()
+          else:
+            self.startShortBreak()
+    elif self.currentState == SHORT_BREAK:
+        if self.isTimeOver():
+            self.ringWorkAlarm()
+    elif self.currentState == WORK_ALARM:
+        if self.isPressed():
+            self.startWork()
+    elif self.currentState == LONG_BREAK:
+        if self.isPressed():
+            self.pause()
+    else:
+        # Log a warning with the state
+        logging.warn("Invalid state: " + self.currentState)
+      
+  			
   def start(self):
     logging.debug("start Pomodoro")
     self.checkState()
+  
+  def stop(self):
+    logging.debug("Stop Pomodoro")
+    # If a timer has been constructed and waiting for the next second
+    if self._nextCheck is not None:
+      # Cancel the timer
+      self._nextCheck.cancel()
+
+  def changeState(self, state):
+    """
+    for changing states 
+    state =  the new state
+    """
+    logging.debug("NEW STATE")
+    self.currentState = state
+    
 
   def startWork(self):
     logging.debug("Start work")
@@ -57,11 +99,6 @@ class Pomodoro:
   def isTimeForLongBreak(self):
     logging.debug("Is time for long break?")
 
-  def stop(self):
-    logging.debug("Stop Pomodoro")
-    # If a timer has been constructed and waiting for the next second
-    if self._nextCheck is not None:
-      # Cancel the timer
-      self._nextCheck.cancel()
+  
     
     
